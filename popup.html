@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html>
+<!-- Copyright 2022 BadAimWeeb. All rights reserved. MIT license. -->
+<head>
+  <script src="sha256.js"></script>
+  <script src="aes.js"></script>
+  <script src="popup.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Poppins", sans-serif;
+    }
+
+    body {
+      background: #3b3754; /*#b4b2b2*/
+      min-width: 50vh;
+    }
+    yourFbstate {
+      width: 90%;
+      height: 200px; /* Điều chỉnh chiều cao theo nhu cầu */
+      border: 1px solid #ccc; /* Đường viền màu xám nhạt */
+      padding: 10px; /* Khoảng cách bên trong */
+      font-family: Arial, sans-serif; /* Đặt phông chữ */
+      font-size: 14px; /* Kích thước phông chữ */
+      background-color: #b4b2b2; /* Màu nền nhạt */
+      color: #333; /* Màu chữ */
+      resize: vertical; /* Cho phép người dùng thay đổi kích thước theo chiều dọc */
+      box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); /* Hiệu ứng đổ bóng */
+      border-radius: 10px; /* Bo tròn góc 10px */
+      overflow-y: auto; /* Hiển thị thanh cuộn nếu nội dung quá dài */
+    }
+
+    .author {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      font-weight: bold;
+      color: #bab6b6;
+      margin: 5px 0 5px 0;
+    }
+
+    .five_button .btn_imp,
+    .five_button .btn_exp,
+    .five_button .btn_logout {
+      border: none;
+      border-radius: 20px;
+      color: #ffffff;
+      cursor: pointer;
+      display: inline-block;
+      font-family: 'Rubik', sans-serif;
+      font-size: 11px;
+      font-weight: 400;
+      margin-bottom: 5px;
+      outline: none;
+      padding: 9px;
+      position: relative;
+      transition: all 0.3s;
+      vertical-align: middle;
+      width: 100%;
+      height: 32px;
+      text-align: center;
+      margin-left: auto;
+      margin-right: auto;
+      transition: all 0.3s ease;
+    }
+
+    .btn_imp {
+      background-color: #023eae;
+    }
+
+    .btn_exp {
+      background-color: #ad38ab;
+    }
+
+    .btn_logout {
+      background-color: #f70c04;
+    }
+
+    .five_button .btn_imp:hover {
+      opacity: 0.5;
+    }
+
+    .five_button .btn_exp:hover {
+      opacity: 0.5;
+    }
+
+    .five_button .btn_logout:hover {
+      opacity: 0.5;
+    }
+
+    .text-boxes {
+      width: 100%;
+      display: inline-block;
+    }
+
+    .text-boxes .topic {
+      font-size: 18px;
+      font-weight: 400;
+      color: #000000;
+      text-align: center;
+      margin-bottom: 12px;
+      margin-top: 6px;
+    }
+
+    /* CSS cho gradient hoạt hình */
+    .box {
+      position: absolute; /* Đặt vị trí tuyệt đối để điều chỉnh dễ hơn */
+      width: calc(90% + 2px); /* Kích thước lớn hơn 2px so với phần tử chứa */
+      height: calc(200px + 2px); /* Kích thước lớn hơn 2px so với phần tử chứa */
+      border-radius: 10px; /* Bo tròn góc cho .box */
+      overflow: hidden;
+      top: 0;
+      left: 0;
+      z-index: -99; /* Đặt .box nằm dưới các phần tử khác */
+    }
+    .box::before,
+    .box::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(0deg, transparent, #45f3ff, #45f3ff);
+      transform-origin: bottom right;
+      animation: animate 6s linear infinite;
+    }
+
+    .box::after {
+      animation-delay: -3s;
+    }
+
+    @keyframes animate {
+     0% {
+          transform: rotate(0deg);
+      }
+      100% {
+         transform: rotate(360deg);
+      }
+    }
+
+    /**/
+    .text-boxes textarea {
+      height: 200px;
+      width: 90%;
+      font-size: 10px;
+      outline: none;
+      border: 1px solid #F2F3F7;
+      border-radius: 10px;
+      background: #CECECE;
+      padding: 8px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+      margin-bottom: 16px;
+    }
+   
+    .text-boxes textarea::-webkit-scrollbar {
+      display: none;
+    }
+
+    .two_button {
+      text-align: center;
+      margin-bottom: 2px;
+    }
+
+    .btn {
+      width: 180px;
+      height: 38px;
+      border: 1px solid #F2F3F7;
+      border-radius: 19px;
+      background: #2e9f3a;
+      text-align: center;
+      font-size: 13px;
+      color: #ffffff;
+      font-weight: 400;
+      cursor: pointer;
+      transition: all 0.4s ease;
+      margin: 10px;
+    }
+
+    .two_button #btnCopy:hover,
+    .two_button #btnDownload:hover {
+      opacity: 0.5;
+    }
+
+    #snackbar {
+      left: 50%;
+      transform: translate(-50%, 0);
+      visibility: hidden;
+      min-width: 250px;
+      margin: 0 5px 0 5px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 2px;
+      padding: 16px;
+      position: fixed;
+      z-index: 1;
+      bottom: 30px;
+    }
+
+    #snackbar.show {
+      visibility: visible;
+      -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+      animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    }
+
+    @-webkit-keyframes fadein {
+      from {
+        bottom: 0;
+        opacity: 0;
+      }
+
+      to {
+        bottom: 30px;
+        opacity: 1;
+      }
+    }
+
+    @keyframes fadein {
+      from {
+        bottom: 0;
+        opacity: 0;
+      }
+
+      to {
+        bottom: 30px;
+        opacity: 1;
+      }
+    }
+
+    @-webkit-keyframes fadeout {
+      from {
+        bottom: 30px;
+        opacity: 1;
+      }
+
+      to {
+        bottom: 0;
+        opacity: 0;
+      }
+    }
+
+    @keyframes fadeout {
+      from {
+        bottom: 30px;
+        opacity: 1;
+      }
+
+      to {
+        bottom: 0;
+        opacity: 0;
+      }
+    }
+
+
+    .pol {
+        background-color: black !important;
+    }
+
+    .pol:hover {
+        opacity: 100% !important;
+        background-color: rgb(36, 36, 36) !important;
+    }
+
+    .topic {
+        color: #ccc !important;
+    }
+
+  </style>
+</head>
+
+<body>
+  <div class="author">
+    <a href="https://github.com/hoangquangtuong" target="_blank" class="author"><img src="./logo/128.png" alt="logo"
+        width="20px" height="20px"></a>
+    <a href="https://github.com/hoangquangtuong" target="_blank" class="author">Github Author</a>
+  </div>
+
+  
+  <div class="five_button" style="width: auto; height: auto; margin-left: 20px; margin-right: 20px">
+
+    <input id="import" type="file" style="display: none; margin-top: 50px " />
+    <label for="import" class="btn_imp">Import FBState</label>
+
+    <input id="export" class="btn_exp" type="button" value="Export FBState" />
+    <button id="exportenc" class="btn_exp pol" >Delete all msgs</button>
+    <button id="exportbase64" class="btn_exp pol" >Unfollow All Pages</button>
+
+    <input id="logout" class="btn_logout" type="button" value="Logout (not die fbstate)" style="margin-top: 5px" />
+    <button id="viewCookies" class="btn_imp">View Cookies as TXT</button>
+  <!-- </div>
+  <div class="box"></div>  Box nằm dưới các phần tử khác 
+    <div class="topic">Your Fbstate Here:</div>
+    <textarea id="yourFbstate" placeholder="Your Fbstate" readonly></textarea>
+  </div> -->
+  <div class="text-boxes">
+    <!--<div class="box"></div> Box nằm phía dưới text-boxes -->
+    <div class="topic">Your Fbstate Here:</div>
+    <textarea id="yourFbstate" placeholder="Your Fbstate" readonly></textarea>
+</div>
+
+
+  <div class="two_button">
+    <button id="btnCopy" class="btn">Copy to clipboard</button>
+    <button id="btnDownload" class="btn">Download Fbstate.json</button>
+    <button id="downloadCookies" class="btn">Download Cookies as TXT</button>
+
+
+
+  <div id="snackbar"></div>
+
+</body>
+
+</html>
